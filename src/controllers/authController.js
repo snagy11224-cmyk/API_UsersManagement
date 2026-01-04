@@ -1,0 +1,50 @@
+
+
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const User = require('../data/users');
+
+exports.register = async (req, res) => {
+  const { name, password } = req.body;
+
+  // hash
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // save user (default role is 'user')
+  const user = await User.create({
+    name,
+    password: hashedPassword
+  });
+
+  // jwt includes role for RBAC
+  const token = jwt.sign(
+    { id: user._id.toString(), role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
+
+  res.status(201).json({ token });
+};
+
+exports.login = async (req, res) => {
+  const { name, password } = req.body;
+
+  const user = await User.findOne({ name });
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  // compare
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const token = jwt.sign(
+    { id: user._id.toString(), role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '1d' }
+  );
+
+  res.json({ token });
+};
