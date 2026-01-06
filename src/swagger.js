@@ -23,7 +23,24 @@ const options = {
           description: 'Enter your JWT token',
         },
       },
+      parameters: {
+        AuthorizationHeader: {
+          name: 'Authorization',
+          in: 'header',
+          description: "Bearer token for authentication. Use 'Bearer <token>'",
+          required: false,
+          schema: {
+            type: 'string',
+            example: 'Bearer <your_token_here>'
+          }
+        }
+      }
     },
+    security: [
+      {
+        BearerAuth: [],
+      },
+    ],
   },
   apis: [path.join(__dirname, 'routes/*.js')],
 };

@@ -5,35 +5,36 @@ const auth = require('../middleWare/authMiddleware');
 
 /**
  * @swagger
+ * tags:
+ *   name: Users
+ *   description: User management endpoints
+ */
+
+/**
+ * @swagger
  * /users:
  *   get:
- *     summary: Get all users (admin only)
+ *     summary: Get all users
  *     tags: [Users]
- *     security:
- *       - BearerAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/AuthorizationHeader'
  *     responses:
  *       200:
- *         description: List of all users
+ *         description: List of users
  *         content:
  *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   _id:
- *                     type: string
- *                   name:
- *                     type: string
- *                   role:
- *                     type: string
- *                     enum: [user, admin]
+ *             example:
+ *               - _id: "64f123abc456"
+ *                 name: "Salma"
+ *                 role: "user"
  *       401:
  *         description: Not authenticated
- *       403:
- *         description: Forbidden (admin only)
  */
-router.get('/', auth.authenticate, auth.authorize('admin'), userController.getUsers);
+router.get(
+  '/',
+  auth.authenticate,
+  userController.getUsers
+);
 
 /**
  * @swagger
@@ -41,62 +42,46 @@ router.get('/', auth.authenticate, auth.authorize('admin'), userController.getUs
  *   post:
  *     summary: Create a new user (admin only)
  *     tags: [Users]
- *     security:
- *       - BearerAuth: []
+ *     parameters:
+ *       - $ref: '#/components/parameters/AuthorizationHeader'
  *     requestBody:
  *       required: true
+ *       description: Data required to create a new user
  *       content:
  *         application/json:
  *           schema:
  *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               password:
- *                 type: string
- *               role:
- *                 type: string
- *                 enum: [user, admin]
- *                 default: user
  *             required:
  *               - name
  *               - password
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: User name
+ *                 example: Salsa
+ *               password:
+ *                 type: string
+ *                 description: User password
+ *                 example: "123456"
+ *               role:
+ *                 type: string
+ *                 description: User role
+ *                 enum: [user, admin]
+ *                 example: user
  *     responses:
  *       201:
- *         description: User created
+ *         description: User created successfully
  *       401:
  *         description: Not authenticated
  *       403:
  *         description: Forbidden (admin only)
  */
-router.post('/', auth.authenticate, auth.authorize('admin'), userController.addUser);
-
-/**
- * @swagger
- * /users/{id}:
- *   delete:
- *     summary: Delete a user (admin only)
- *     tags: [Users]
- *     security:
- *       - BearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
- *     responses:
- *       200:
- *         description: User deleted
- *       401:
- *         description: Not authenticated
- *       403:
- *         description: Forbidden (admin only)
- *       404:
- *         description: User not found
- */
-router.delete('/:id', auth.authenticate, auth.authorize('admin'), userController.deleteUser);
+router.post(
+  '/',
+  auth.authenticate,
+  auth.authorize('admin'),
+  userController.addUser
+);
 
 /**
  * @swagger
@@ -104,17 +89,18 @@ router.delete('/:id', auth.authenticate, auth.authorize('admin'), userController
  *   put:
  *     summary: Update user (admin or self)
  *     tags: [Users]
- *     security:
- *       - BearerAuth: []
  *     parameters:
+ *       - $ref: '#/components/parameters/AuthorizationHeader'
  *       - in: path
  *         name: id
  *         required: true
+ *         description: User ID
  *         schema:
  *           type: string
- *         description: User ID
+ *         example: "64f123abc456"
  *     requestBody:
  *       required: true
+ *       description: Fields to update
  *       content:
  *         application/json:
  *           schema:
@@ -122,14 +108,17 @@ router.delete('/:id', auth.authenticate, auth.authorize('admin'), userController
  *             properties:
  *               name:
  *                 type: string
+ *                 example: NewName
  *               password:
  *                 type: string
+ *                 example: "newPassword123"
  *               role:
  *                 type: string
  *                 enum: [user, admin]
+ *                 example: user
  *     responses:
  *       200:
- *         description: User updated
+ *         description: User updated successfully
  *       401:
  *         description: Not authenticated
  *       403:
@@ -137,6 +126,43 @@ router.delete('/:id', auth.authenticate, auth.authorize('admin'), userController
  *       404:
  *         description: User not found
  */
-router.put('/:id', auth.authenticate, auth.authorizeOrSelf('admin'), userController.updateUser);
+router.put(
+  '/:id',
+  auth.authenticate,
+  auth.authorizeOrSelf('admin'),
+  userController.updateUser
+);
+
+/**
+ * @swagger
+ * /users/{id}:
+ *   delete:
+ *     summary: Delete user (admin only)
+ *     tags: [Users]
+ *     parameters:
+ *       - $ref: '#/components/parameters/AuthorizationHeader'
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: string
+ *         example: "64f123abc456"
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ *       401:
+ *         description: Not authenticated
+ *       403:
+ *         description: Forbidden (admin only)
+ *       404:
+ *         description: User not found
+ */
+router.delete(
+  '/:id',
+  auth.authenticate,
+  auth.authorize('admin'),
+  userController.deleteUser
+);
 
 module.exports = router;
